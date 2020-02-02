@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Day15
 {
@@ -15,59 +16,23 @@ namespace Day15
         internal void Solve()
         {
             var lines = input.Split(Environment.NewLine);
-            var state = new State(lines);
 
-            var final = BFS(state);
-            Console.WriteLine(final.MoveCount);
-        }
-
-        private State BFS(State initialState)
-        {
-            var queue = new Queue<State>();
-            queue.Enqueue(initialState);
-
-            var visited = new HashSet<State>();
-
-            while (queue.Count > 0)
+            var discs = new (int, int)[lines.Length];
+            foreach (var line in lines)
             {
-                var state = queue.Dequeue();
-
-                if (state.Final) return state;
-                if (!state.Good) continue;
-                if (visited.Contains(state)) continue;
-
-                visited.Add(state);
-                foreach (var item in state.FloorItems)
-                {
-                    var upState = state.Clone();
-                    upState.Move(+1, item);
-                    queue.Enqueue(upState);
-
-                    var downState = state.Clone();
-                    downState.Move(-1, item);
-                    queue.Enqueue(downState);
-                }
-
-                foreach (var item1 in state.FloorItems)
-                {
-                    foreach (var item2 in state.FloorItems)
-                    {
-                        if (item1 != item2)
-                        {
-                            var upState = state.Clone();
-                            upState.Move(+1, item1, item2);
-                            queue.Enqueue(upState);
-
-                            var downState = state.Clone();
-                            upState.Move(-1, item1, item2);
-                            queue.Enqueue(upState);
-
-                        }
-                    }
-                }
+                var m = Regex.Match(line, @"Disc #(\d+) has (\d+) positions; at time=0, it is at position (\d+).");
+                discs[int.Parse(m.Groups[1].Value) - 1] = (int.Parse(m.Groups[2].Value), int.Parse(m.Groups[3].Value));
             }
 
-            return null;
+            var i = 0;
+            bool done = false;
+            while (!done)
+            {
+                done = Enumerable.Range(0, discs.Length).All(x => (discs[x].Item2 + i + (x+1)) % discs[x].Item1 == 0);
+                i++;
+            }
+
+            Console.WriteLine($"Press the button at t: {i - 1}");
         }
     }
 }
